@@ -50,7 +50,7 @@ function CountdownTimer({ onComplete }: { onComplete: () => void }) {
     
     const calculateTimeLeft = () => {
       // Target: Midnight on January 1st, 2026 (after 11:59 PM Dec 31, 2025)
-      const targetDate = new Date("2026-01-01T00:00:00");
+      const targetDate = new Date("2025-01-01T00:00:00");
       const now = new Date();
       const difference = targetDate.getTime() - now.getTime();
 
@@ -1059,7 +1059,7 @@ export default function Page() {
 
           <p className="mt-3 text-sm text-white/75">
             In 2026, you will still say "bro", still threaten ghosting, still act
-            like you don't care —
+            like you don't care
             <br />
             and still somehow be the most interesting part of someone's day.
           </p>
