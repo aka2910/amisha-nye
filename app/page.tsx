@@ -14,6 +14,11 @@ import {
   Heart,
   Stars,
   X,
+  Mail,
+  Stamp,
+  Pencil,
+  Eye,
+  Fingerprint,
 } from "lucide-react";
 
 const fadeUp = {
@@ -45,7 +50,7 @@ function CountdownTimer({ onComplete }: { onComplete: () => void }) {
     
     const calculateTimeLeft = () => {
       // Target: Midnight on January 1st, 2026 (after 11:59 PM Dec 31, 2025)
-      const targetDate = new Date("2026-01-01T00:00:00");
+      const targetDate = new Date("2025-01-01T00:00:00");
       const now = new Date();
       const difference = targetDate.getTime() - now.getTime();
 
@@ -257,6 +262,11 @@ export default function Page() {
   const [activeImg, setActiveImg] = useState<string | null>(null);
   const [showContent, setShowContent] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [letterOpened, setLetterOpened] = useState(false);
+  const [showHearts, setShowHearts] = useState(false);
+  const [typedText, setTypedText] = useState("");
+  const [proofRevealed, setProofRevealed] = useState(false);
+  const [scratchProgress, setScratchProgress] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -540,34 +550,428 @@ export default function Page() {
           </div>
         </motion.section>
 
-        {/* SKETCH */}
+        {/* PROOF SECTION - Interactive */}
         <motion.section
           variants={fadeUp}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className={`mt-6 ${glassCard} p-5 sm:p-7`}
+          className={`mt-6 ${glassCard} p-5 sm:p-7 relative overflow-hidden`}
         >
-          <h2 className="text-lg font-bold sm:text-xl">🎨 Proof</h2>
+          {/* Sparkle burst when revealed */}
+          <AnimatePresence>
+            {proofRevealed && (
+              <>
+                {[...Array(16)].map((_, i) => (
+                  <motion.div
+                    key={`sparkle-${i}`}
+                    initial={{
+                      opacity: 0,
+                      scale: 0,
+                      x: "50%",
+                      y: "50%",
+                    }}
+                    animate={{
+                      opacity: [0, 1, 0],
+                      scale: [0, 1.5, 0],
+                      x: `${20 + Math.random() * 60}%`,
+                      y: `${20 + Math.random() * 60}%`,
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      delay: i * 0.05,
+                      ease: "easeOut",
+                    }}
+                    className="absolute pointer-events-none z-20"
+                  >
+                    <Sparkles
+                      className={`w-3 h-3 sm:w-4 sm:h-4 ${
+                        i % 4 === 0
+                          ? "text-amber-400"
+                          : i % 4 === 1
+                          ? "text-fuchsia-400"
+                          : i % 4 === 2
+                          ? "text-violet-400"
+                          : "text-rose-400"
+                      }`}
+                    />
+                  </motion.div>
+                ))}
+              </>
+            )}
+          </AnimatePresence>
+
+          <div className="flex items-center gap-2">
+            <Pencil className="h-5 w-5 text-white/80" />
+            <h2 className="text-lg font-bold sm:text-xl">🎨 Proof</h2>
+          </div>
           <p className="mt-2 text-sm text-white/70">
-            People don't draw strangers. That's premium behaviour. 😌
+            People don&apos;t draw sketches of strangers. That&apos;s premium behaviour. 😌
           </p>
 
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
-            {/* Optional: add sketch image here */}
-            {/*
-            <div className="relative h-[240px] w-full overflow-hidden rounded-2xl border border-white/10 sm:w-[220px]">
-              <Image src="/images/sketch.jpg" alt="Sketch" fill className="object-cover" />
-            </div>
-            */}
+          {/* Interactive Scratch Card / Reveal */}
+          <div className="mt-6 flex justify-center">
+            <div className="relative w-full max-w-[320px]">
+              <AnimatePresence mode="wait">
+                {!proofRevealed ? (
+                  <motion.div
+                    key="scratch"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    className="relative"
+                  >
+                    {/* Scratch card surface */}
+                    <motion.button
+                      onClick={() => {
+                        // Simulate scratch progress
+                        const interval = setInterval(() => {
+                          setScratchProgress((prev) => {
+                            if (prev >= 100) {
+                              clearInterval(interval);
+                              setProofRevealed(true);
+                              return 100;
+                            }
+                            return prev + 20;
+                          });
+                        }, 100);
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full relative cursor-pointer group"
+                    >
+                      <div className="relative rounded-2xl overflow-hidden border-2 border-dashed border-white/20 bg-gradient-to-br from-slate-700 to-slate-800 p-8 shadow-xl">
+                        {/* Scratch overlay with progress */}
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-br from-slate-600 via-slate-500 to-slate-600"
+                          style={{
+                            clipPath: `inset(0 ${100 - scratchProgress}% 0 0)`,
+                          }}
+                        />
+                        
+                        {/* Sparkle pattern on scratch surface */}
+                        <div className="absolute inset-0 opacity-20">
+                          {[...Array(20)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="absolute w-1 h-1 bg-white rounded-full"
+                              style={{
+                                left: `${Math.random() * 100}%`,
+                                top: `${Math.random() * 100}%`,
+                              }}
+                              animate={{
+                                opacity: [0.3, 0.8, 0.3],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                delay: Math.random() * 2,
+                              }}
+                            />
+                          ))}
+                        </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/8 p-4 text-sm text-white/75">
-              Happy New Year, Amisha.
-              <br />
-              Keep your aura. Keep your chaos. Keep being you.
-              <br />
-              <br />
-              And yes… this is 1% sincere. That's the max.
+                        {/* Content */}
+                        <div className="relative z-10 text-center">
+                          <motion.div
+                            animate={{ rotate: [0, 10, -10, 0] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            <Fingerprint className="w-12 h-12 mx-auto text-white/40" />
+                          </motion.div>
+                          <p className="mt-4 text-white/60 font-medium">Tap to Scratch & Reveal</p>
+                          <p className="mt-1 text-white/40 text-xs">What makes this premium?</p>
+                          
+                          {/* Progress bar */}
+                          {scratchProgress > 0 && scratchProgress < 100 && (
+                            <div className="mt-4 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                              <motion.div
+                                className="h-full bg-gradient-to-r from-amber-400 to-fuchsia-400"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${scratchProgress}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      </div>
+                    </motion.button>
+                  </motion.div>
+                ) : (
+                  /* Revealed Content */
+                  <motion.div
+                    key="revealed"
+                    initial={{ opacity: 0, scale: 0.8, rotateY: 90 }}
+                    animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                    transition={{ type: "spring", damping: 15 }}
+                    className="relative"
+                  >
+                    {/* Polaroid-style frame */}
+                    <div className="bg-white rounded-xl p-3 pb-12 shadow-2xl transform rotate-1 hover:rotate-0 transition-transform">
+                      {/* Image area */}
+                      <div className="relative h-[200px] rounded-lg overflow-hidden bg-gradient-to-br from-amber-100 to-rose-100">
+                        {/* Decorative sketch representation */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <motion.div
+                              initial={{ pathLength: 0 }}
+                              animate={{ pathLength: 1 }}
+                              transition={{ duration: 2 }}
+                            >
+                              <Pencil className="w-16 h-16 text-amber-600/60 mx-auto" />
+                            </motion.div>
+                            <motion.p
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.5 }}
+                              className="mt-2 text-amber-800/70 text-sm font-medium"
+                            >
+                              ✨ Sketch from Amisha is incoming... ✨
+                            </motion.p>
+                            <motion.p
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 1 }}
+                              className="mt-1 text-amber-700/50 text-xs"
+                            >
+                              (premium effort 😌😏)
+                            </motion.p>
+                          </div>
+                        </div>
+                        
+                        {/* Corner decoration */}
+                        <div className="absolute top-2 right-2">
+                          <Heart className="w-4 h-4 text-rose-400" fill="currentColor" />
+                        </div>
+                      </div>
+                      
+                      {/* Polaroid caption area */}
+                      <div className="absolute bottom-2 left-0 right-0 text-center">
+                        <p className="text-slate-600 text-xs font-handwriting" style={{ fontFamily: "cursive" }}>
+                          For Amisha 💕
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tape decoration */}
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-6 bg-amber-200/80 rounded transform -rotate-2" />
+
+                    {/* Reset button */}
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                      onClick={() => {
+                        setProofRevealed(false);
+                        setScratchProgress(0);
+                      }}
+                      className="mt-4 w-full py-2 rounded-xl border border-white/15 bg-white/8 text-sm text-white/70 hover:bg-white/12 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Scratch Again
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* INTERACTIVE LETTER */}
+        <motion.section
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          className={`mt-6 ${glassCard} p-5 sm:p-7 relative overflow-hidden`}
+        >
+          {/* Floating hearts when opened */}
+          <AnimatePresence>
+            {showHearts && (
+              <>
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={`heart-${i}`}
+                    initial={{
+                      opacity: 0,
+                      scale: 0,
+                      x: "50%",
+                      y: "50%",
+                    }}
+                    animate={{
+                      opacity: [0, 1, 1, 0],
+                      scale: [0.5, 1.2, 1],
+                      x: `${Math.random() * 100}%`,
+                      y: `${-50 - Math.random() * 100}%`,
+                    }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      duration: 2 + Math.random(),
+                      delay: i * 0.1,
+                      ease: "easeOut",
+                    }}
+                    className="absolute pointer-events-none z-20"
+                  >
+                    <Heart
+                      className={`w-4 h-4 sm:w-6 sm:h-6 ${
+                        i % 3 === 0
+                          ? "text-pink-400"
+                          : i % 3 === 1
+                          ? "text-rose-400"
+                          : "text-fuchsia-400"
+                      }`}
+                      fill="currentColor"
+                    />
+                  </motion.div>
+                ))}
+              </>
+            )}
+          </AnimatePresence>
+
+          <div className="flex items-center gap-2 mb-4">
+            <Mail className="h-5 w-5 text-white/80" />
+            <h2 className="text-lg font-bold sm:text-xl">💌 A Letter For You</h2>
+          </div>
+          <p className="text-sm text-white/70 mb-6">
+            Some things are better said in writing. Tap to open...
+          </p>
+
+          {/* Envelope Container */}
+          <div className="flex justify-center">
+            <div className="relative w-full max-w-[360px]">
+              {/* Closed Envelope */}
+              <AnimatePresence mode="wait">
+                {!letterOpened ? (
+                  <motion.button
+                    key="envelope"
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0, rotateX: -90 }}
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setLetterOpened(true);
+                      setShowHearts(true);
+                      // Typewriter effect
+                      const fullText = `Happy New Year, Amisha.\n\nKeep your aura. Keep your chaos. Keep being you.\n\nAnd yes… this is 1% sincere. That's the max.\n\n- Akshat 🐧`;
+                      let index = 0;
+                      const typeInterval = setInterval(() => {
+                        if (index <= fullText.length) {
+                          setTypedText(fullText.slice(0, index));
+                          index++;
+                        } else {
+                          clearInterval(typeInterval);
+                        }
+                      }, 35);
+                      // Hide hearts after animation
+                      setTimeout(() => setShowHearts(false), 3000);
+                    }}
+                    className="w-full relative cursor-pointer group"
+                  >
+                    {/* Envelope body */}
+                    <div className="relative bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl p-8 shadow-xl border border-amber-300/50">
+                      {/* Envelope flap (top triangle) */}
+                      <div className="absolute -top-0 left-0 right-0 h-[70px] overflow-hidden">
+                        <div 
+                          className="absolute top-0 left-1/2 -translate-x-1/2 w-[140%] h-[100px] bg-gradient-to-br from-amber-200 to-amber-300 border-b-2 border-amber-400/30"
+                          style={{
+                            clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)",
+                            transformOrigin: "top center",
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Wax seal */}
+                      <motion.div
+                        animate={{ rotate: [0, 5, -5, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="absolute top-8 left-1/2 -translate-x-1/2 z-10"
+                      >
+                        <div className="relative">
+                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-500 to-red-700 shadow-lg flex items-center justify-center border-2 border-rose-400/50">
+                            <Heart className="w-6 h-6 text-rose-200" fill="currentColor" />
+                          </div>
+                          {/* Wax drips */}
+                          <div className="absolute -bottom-1 left-2 w-2 h-3 bg-gradient-to-b from-red-600 to-red-700 rounded-full" />
+                          <div className="absolute -bottom-2 right-3 w-1.5 h-2.5 bg-gradient-to-b from-red-600 to-red-700 rounded-full" />
+                        </div>
+                      </motion.div>
+
+                      {/* Envelope content area */}
+                      <div className="mt-16 text-center">
+                        <p className="text-amber-800/80 font-medium text-sm">To: Amisha</p>
+                        <p className="text-amber-700/60 text-xs mt-1">From: Akshat 🐧</p>
+                        
+                        <div className="mt-6 flex items-center justify-center gap-2">
+                          <Stamp className="w-4 h-4 text-amber-600/60" />
+                          <span className="text-xs text-amber-600/80 tracking-wide">TAP TO OPEN</span>
+                          <Stamp className="w-4 h-4 text-amber-600/60" />
+                        </div>
+                      </div>
+                      
+                      {/* Shimmer effect on hover */}
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    </div>
+                  </motion.button>
+                ) : (
+                  /* Opened Letter */
+                  <motion.div
+                    key="letter"
+                    initial={{ scale: 0.8, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    transition={{ type: "spring", damping: 20 }}
+                    className="relative"
+                  >
+                    {/* Letter paper */}
+                    <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 sm:p-8 shadow-2xl border border-amber-200/50 relative overflow-hidden">
+                      {/* Paper texture lines */}
+                      <div className="absolute inset-0 opacity-30">
+                        {[...Array(12)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-[1px] bg-amber-300/50 w-full"
+                            style={{ marginTop: `${24 + i * 24}px` }}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Letter content with typewriter effect */}
+                      <div className="relative z-10">
+                        <div className="text-amber-900/90 text-sm sm:text-base leading-relaxed whitespace-pre-line font-serif min-h-[180px]">
+                          {typedText}
+                          <motion.span
+                            animate={{ opacity: [1, 0] }}
+                            transition={{ duration: 0.5, repeat: Infinity }}
+                            className="inline-block w-0.5 h-4 bg-amber-700 ml-0.5 align-middle"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Decorative corner */}
+                      <div className="absolute bottom-3 right-3">
+                        <Sparkles className="w-5 h-5 text-amber-400/60" />
+                      </div>
+                    </div>
+                    
+                    {/* Close/Reset button */}
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      onClick={() => {
+                        setLetterOpened(false);
+                        setTypedText("");
+                      }}
+                      className="mt-4 w-full py-2 rounded-xl border border-white/15 bg-white/8 text-sm text-white/70 hover:bg-white/12 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Close Letter
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </motion.section>
@@ -667,7 +1071,7 @@ export default function Page() {
           </p>
 
           <div className="mt-4 text-center text-xs text-white/55">
-            Made with chaos, sarcasm, and 1% sincerity — by Akshat.
+            Made with chaos, sarcasm, and 1% sincerity - by Akshat.
           </div>
         </motion.section>
 
