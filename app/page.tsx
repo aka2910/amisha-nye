@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Sparkles,
@@ -30,17 +30,250 @@ const glassCard =
 const pill =
   "rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs text-white/80 backdrop-blur";
 
+// Countdown Timer Component
+function CountdownTimer({ onComplete }: { onComplete: () => void }) {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    const calculateTimeLeft = () => {
+      // Target: Midnight on January 1st, 2026 (after 11:59 PM Dec 31, 2025)
+      const targetDate = new Date("2026-01-01T00:00:00");
+      const now = new Date();
+      const difference = targetDate.getTime() - now.getTime();
+
+      if (difference <= 0) {
+        onComplete();
+        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      }
+
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      const newTimeLeft = calculateTimeLeft();
+      setTimeLeft(newTimeLeft);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [onComplete]);
+
+  if (!mounted) {
+    return null;
+  }
+
+  const timeBlocks = [
+    { label: "Days", value: timeLeft.days },
+    { label: "Hours", value: timeLeft.hours },
+    { label: "Minutes", value: timeLeft.minutes },
+    { label: "Seconds", value: timeLeft.seconds },
+  ];
+
+  return (
+    <main className="min-h-screen bg-[#070710] text-white overflow-hidden relative flex items-center justify-center">
+      {/* Animated background */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className={`absolute inset-0 ${shimmer}`} />
+        <div className="absolute left-[-200px] top-[-200px] h-[520px] w-[520px] rounded-full bg-fuchsia-500/25 blur-[120px] animate-pulse" />
+        <div className="absolute right-[-220px] top-[15%] h-[620px] w-[620px] rounded-full bg-violet-500/25 blur-[140px] animate-pulse" style={{ animationDelay: "1s" }} />
+        <div className="absolute left-[15%] bottom-[-220px] h-[620px] w-[620px] rounded-full bg-amber-400/15 blur-[150px] animate-pulse" style={{ animationDelay: "2s" }} />
+        <div className="absolute right-[25%] top-[40%] h-[400px] w-[400px] rounded-full bg-rose-500/15 blur-[100px] animate-pulse" style={{ animationDelay: "0.5s" }} />
+      </div>
+
+      {/* Floating particles */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-white/30 rounded-full"
+            initial={{
+              x: `${Math.random() * 100}vw`,
+              y: "100vh",
+              opacity: 0,
+            }}
+            animate={{
+              y: "-10vh",
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              delay: Math.random() * 10,
+              ease: "linear",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Stars scattered */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {[...Array(50)].map((_, i) => (
+          <motion.div
+            key={`star-${i}`}
+            className="absolute w-0.5 h-0.5 bg-white rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0.2, 1, 0.2],
+              scale: [1, 1.5, 1],
+            }}
+            transition={{
+              duration: Math.random() * 3 + 2,
+              repeat: Infinity,
+              delay: Math.random() * 3,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 px-4 text-center max-w-4xl mx-auto">
+        {/* Top decoration */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="mb-8"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-sm">
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span className="text-sm text-white/70 tracking-wide">Something special is coming...</span>
+            <Sparkles className="w-4 h-4 text-amber-400" />
+          </div>
+        </motion.div>
+
+        {/* Main heading */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight">
+            <span className="bg-gradient-to-r from-fuchsia-400 via-violet-400 to-amber-400 bg-clip-text text-transparent">
+              2026
+            </span>
+          </h1>
+          <p className="mt-4 text-xl sm:text-2xl text-white/60 font-light">
+            New Year Countdown
+          </p>
+        </motion.div>
+
+        {/* Countdown blocks */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mt-12 grid grid-cols-4 gap-3 sm:gap-6"
+        >
+          {timeBlocks.map((block, index) => (
+            <motion.div
+              key={block.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-500/20 to-violet-500/20 rounded-2xl sm:rounded-3xl blur-xl group-hover:blur-2xl transition-all opacity-60" />
+              <div className="relative rounded-2xl sm:rounded-3xl border border-white/15 bg-white/5 backdrop-blur-md p-4 sm:p-6 md:p-8 overflow-hidden">
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                
+                <motion.span
+                  key={block.value}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="block text-3xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent"
+                >
+                  {String(block.value).padStart(2, "0")}
+                </motion.span>
+                <span className="block mt-2 text-[10px] sm:text-xs uppercase tracking-[0.2em] text-white/50">
+                  {block.label}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Subtitle */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="mt-12"
+        >
+          <p className="text-white/50 text-sm sm:text-base">
+            A surprise awaits at midnight ✨
+          </p>
+        </motion.div>
+
+        {/* Bottom decoration */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1 }}
+          className="mt-16 flex justify-center gap-4"
+        >
+          {["🎆", "🎇", "✨", "🎉", "🥂"].map((emoji, i) => (
+            <motion.span
+              key={i}
+              className="text-2xl sm:text-3xl"
+              animate={{
+                y: [0, -10, 0],
+                rotate: [0, 5, -5, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                delay: i * 0.2,
+              }}
+            >
+              {emoji}
+            </motion.span>
+          ))}
+        </motion.div>
+      </div>
+    </main>
+  );
+}
+
 export default function Page() {
   const [reveal, setReveal] = useState(false);
   const [contractStatus, setContractStatus] = useState<string>("");
   const [activeImg, setActiveImg] = useState<string | null>(null);
+  const [showContent, setShowContent] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Check if we're past midnight on Jan 1, 2026
+    const targetDate = new Date("2026-01-01T00:00:00");
+    const now = new Date();
+    if (now >= targetDate) {
+      setShowContent(true);
+    }
+  }, []);
 
   const awards = useMemo(
     () => [
       {
         icon: <Crown className="h-5 w-5" />,
         title: "Aura of the Year",
-        desc: "For being addictive even when you claim you’re ghosting.",
+        desc: "For being addictive even when you claim you're ghosting.",
         score: "∞/10",
       },
       {
@@ -90,6 +323,21 @@ export default function Page() {
     []
   );
 
+  // Show nothing while checking time on client
+  if (!mounted) {
+    return (
+      <main className="min-h-screen bg-[#070710] text-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+      </main>
+    );
+  }
+
+  // Show countdown if not yet time
+  if (!showContent) {
+    return <CountdownTimer onComplete={() => setShowContent(true)} />;
+  }
+
+  // Main content after countdown
   return (
     <main className="min-h-screen bg-[#070710] text-white selection:bg-fuchsia-400/30 selection:text-white">
       {/* Background glow */}
@@ -246,10 +494,10 @@ export default function Page() {
                   Ghosting longer than <b>24 hours</b> requires a written apology.
                 </li>
                 <li>
-                  “Acquaintance” is permitted only as a joke. Permanent use is illegal.
+                  "Acquaintance" is permitted only as a joke. Permanent use is illegal.
                 </li>
                 <li>
-                  Amisha’s aura is officially unbeatable; arguing is pointless.
+                  Amisha's aura is officially unbeatable; arguing is pointless.
                 </li>
                 <li>If bored, entertainment is mandatory. No refunds.</li>
               </ul>
@@ -258,7 +506,7 @@ export default function Page() {
             <div className="rounded-2xl border border-white/10 bg-white/8 p-4">
               <h3 className="font-semibold">Signature Clause</h3>
               <p className="mt-2 text-sm text-white/70">
-                By reading this, you confirm that you’re at least <b>1% responsible</b>
+                By reading this, you confirm that you're at least <b>1% responsible</b>
                 for making Akshat smile in 2025.
               </p>
 
@@ -302,7 +550,7 @@ export default function Page() {
         >
           <h2 className="text-lg font-bold sm:text-xl">🎨 Proof</h2>
           <p className="mt-2 text-sm text-white/70">
-            People don’t draw strangers. That’s premium behaviour. 😌
+            People don't draw strangers. That's premium behaviour. 😌
           </p>
 
           <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -319,7 +567,7 @@ export default function Page() {
               Keep your aura. Keep your chaos. Keep being you.
               <br />
               <br />
-              And yes… this is 1% sincere. That’s the max.
+              And yes… this is 1% sincere. That's the max.
             </div>
           </div>
         </motion.section>
@@ -406,14 +654,14 @@ export default function Page() {
           </div>
 
           <p className="mt-3 text-sm text-white/75">
-            In 2026, you will still say “bro”, still threaten ghosting, still act
+            In 2026, you will still say "bro", still threaten ghosting, still act
             like you don't care —
             <br />
-            and still somehow be the most interesting part of someone’s day.
+            and still somehow be the most interesting part of someone's day.
           </p>
 
           <p className="mt-3 text-sm text-white/75">
-            Happy New Year, <b>Amisha</b>. Don’t change.
+            Happy New Year, <b>Amisha</b>. Don't change.
             <br />
             Just maybe… be 5% nicer 😌
           </p>
